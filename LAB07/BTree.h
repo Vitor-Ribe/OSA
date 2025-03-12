@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include <map>
 
 using namespace std;
 
@@ -69,6 +70,7 @@ class BTreeNode {
         void remove(int key);
         void print_tree();
         void saveToFile(const string& filename);
+        map<int, ArvoreId> readAllNodesFromFile(const string& binFilename);
         static pair<bool, uintptr_t> searchInFile(const string& binFilename, int key);
         void convertBinToTxt(const string& binFilename, const string& txtFilename); 
     };

@@ -3,7 +3,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>  
-
+#include <map>
 using namespace std;
 
 int main() {
@@ -37,7 +37,7 @@ int main() {
     btree.saveToFile(binFilename); //Salva a árvore em arquivo
     btree.convertBinToTxt(binFilename, txtFilename); //Converte o arquivo binário para txt
     
-
+    
     // Vetor de elementos a serem removidos
     vector<int> elementos2 = {25, 45, 24}; 
 
@@ -77,6 +77,45 @@ int main() {
         } else {
             cout << "│ - Chave " << chave << " - Não encontrada!\t\t\t\t\t│" << endl;
         }
+    }
+    cout << "└───────────────────────────────────────────────────────────────┘\n" << endl;
+    
+    //Reconstruindo a arvore apartir do arquivo binario
+    BTree btree2(2);
+    map<int, ArvoreId> nodes = btree2.readAllNodesFromFile(binFilename);
+    // Construir a árvore na memória
+    map<int, BTreeNode*> treeNodes;
+    for (const auto& [id, diskNode] : nodes) {
+        BTreeNode* node = new BTreeNode(btree2.m, diskNode.ehfolha == 1);
+        node->keys.resize(diskNode.qntchave);
+        for (int i = 0; i < diskNode.qntchave; i++) {
+            node->keys[i] = make_pair(diskNode.chave[i], ""); // Endereço vazio
+        }
+        treeNodes[id] = node;
+    }
+
+    BTreeNode* root = nullptr;
+    for (const auto& [id, diskNode] : nodes) {
+        BTreeNode* node = treeNodes[id];
+        if (diskNode.pai != -1) {
+            node->parent = treeNodes[diskNode.pai];
+        } else {
+            root = node;
+        }
+        for (int i = 0; i < diskNode.qntfilho; i++) {
+            node->children.push_back(treeNodes[diskNode.idfilho[i]]);
+        }
+    }
+    cout << "\n┌───────────────────────────────────────────────────────────────┐\n";
+    cout << "│\tRECONSTRUÇÃO DA ÁRVORE B A PARTIR DO ARQUIVO BINÁRIO\t│";
+    cout << "\n│---------------------------------------------------------------│";
+    // Imprimir a árvore reconstruída
+    if (root) {
+        cout << "\n│ Árvore B reconstruída:";
+        cout << setw(44) << "│\n";
+        root->print_node();
+    } else {
+        cout << "\n│ Falha ao reconstruir a árvore.\n";
     }
     cout << "└───────────────────────────────────────────────────────────────┘\n" << endl;
     

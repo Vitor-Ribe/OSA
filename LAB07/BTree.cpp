@@ -424,7 +424,6 @@ void BTree::saveToFile(const string& filename) {
     out.close();
 }
 
-// função para buscar a chave no arquivo binário
 pair<bool, uintptr_t> BTree::searchInFile(const string& binFilename, int key) {
     ifstream in(binFilename, ios::binary);
 
@@ -490,6 +489,32 @@ pair<bool, uintptr_t> BTree::searchInFile(const string& binFilename, int key) {
     }
     
     return {false, 0};
+}
+
+map<int, ArvoreId> BTree::readAllNodesFromFile(const string& binFilename) {
+    ifstream in(binFilename, ios::binary);
+    map<int, ArvoreId> nodes;
+
+    if (!in.is_open()) {
+        cerr << "Não foi possível abrir o arquivo binário: " << binFilename << endl;
+        return nodes;
+    }
+
+    int file_m;
+    if (!in.read(reinterpret_cast<char*>(&file_m), sizeof(file_m))) {
+        cerr << "Erro ao ler o cabeçalho do arquivo." << endl;
+        return nodes;
+    }
+
+    in.seekg(sizeof(file_m), ios::beg);
+
+    ArvoreId current;
+    while (in.read(reinterpret_cast<char*>(&current), sizeof(ArvoreId))) {
+        nodes[current.id] = current;
+    }
+
+    in.close();
+    return nodes;
 }
 
 // conversão do arquivo binário para texto
